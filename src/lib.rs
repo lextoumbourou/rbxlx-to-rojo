@@ -2,8 +2,8 @@ use log::debug;
 use rbx_dom_weak::{RbxId, RbxInstance, RbxTree, RbxValue};
 use std::{
     borrow::Cow,
-    collections::{HashMap, HashSet},
-    path::{Path, PathBuf},
+    collections::{HashMap, HashSet, BTreeMap},
+    path::{Path, PathBuf}
 };
 
 use structures::*;
@@ -30,9 +30,10 @@ fn repr_instance<'a>(
     child: &'a RbxInstance,
     has_scripts: &'a HashMap<RbxId, bool>,
 ) -> Option<(Vec<Instruction<'a>>, Cow<'a, Path>)> {
-    if has_scripts.get(&child.get_id()) != Some(&true) {
-        return None;
-    }
+    // if has_scripts.get(&child.get_id()) != Some(&true) {
+    //     return None;
+    // }
+    
 
     match child.class_name.as_str() {
         "Folder" => {
@@ -47,7 +48,7 @@ fn repr_instance<'a>(
                         contents: Cow::Owned(
                             serde_json::to_string_pretty(&MetaFile {
                                 class_name: None,
-                                // properties: BTreeMap::new(),
+                                properties: BTreeMap::new(),
                                 ignore_unknown_instances: true,
                             })
                             .unwrap()
@@ -86,7 +87,7 @@ fn repr_instance<'a>(
                 let meta_contents = Cow::Owned(
                     serde_json::to_string_pretty(&MetaFile {
                         class_name: None,
-                        // properties: BTreeMap::new(),
+                        properties: BTreeMap::new(),
                         ignore_unknown_instances: true,
                     })
                     .expect("couldn't serialize meta")
@@ -211,7 +212,7 @@ fn repr_instance<'a>(
             let folder_path: Cow<'a, Path> = Cow::Owned(base.join(&child.name));
             let meta = MetaFile {
                 class_name: Some(child.class_name.clone()),
-                // properties: properties.into_iter().collect(),
+                properties: child.properties.clone().into_iter().collect(),
                 ignore_unknown_instances: true,
             };
 
@@ -232,25 +233,6 @@ fn repr_instance<'a>(
                 ],
                 folder_path,
             ))
-
-            // let properties = RbxInstanceProperties {
-            //     name: child.name.clone(),
-            //     class_name: other_class.to_string(),
-            //     properties,
-            // };
-
-            // let root_id = tree.get_root_id();
-            // let id = tree.insert_instance(properties, root_id);
-
-            // let mut buffer = Vec::new();
-            // rbx_xml::to_writer_default(&mut buffer, &tree, &[id]).map_err(Error::XmlEncodeError)?;
-            // Ok((
-            //     vec![Instruction::CreateFile {
-            //         filename: Cow::Owned(base.join(&format!("{}.rbxmx", child.name))),
-            //         contents: Cow::Owned(buffer),
-            //     }],
-            //     Cow::Borrowed(base),
-            // ))
         }
     }
 }
@@ -348,7 +330,7 @@ fn check_has_scripts(
     result
 }
 
-pub fn process_instructions(tree: &RbxTree, instruction_reader: &mut InstructionReader) {
+pub fn process_instructions(tree: &RbxTree, instruction_reader: &mut dyn InstructionReader) {
     let root = tree.get_root_id();
     let root_instance = tree.get_instance(root).expect("fake root id?");
     let path = PathBuf::new();

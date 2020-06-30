@@ -1,4 +1,4 @@
-use rbx_dom_weak::RbxInstance;
+use rbx_dom_weak::{RbxInstance, RbxValue};
 use serde::{Deserialize, Serialize, Serializer};
 use std::{
     borrow::Cow,
@@ -48,9 +48,9 @@ pub(crate) struct MetaFile {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub class_name: Option<String>,
 
-    // #[serde(rename = "properties")]
-    // #[serde(skip_serializing_if = "BTreeMap::is_empty")]
-    // pub properties: BTreeMap<String, RbxValue>,
+    #[serde(rename = "properties")]
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub properties: BTreeMap<String, RbxValue>,
 
     #[serde(rename = "ignoreUnknownInstances")]
     pub ignore_unknown_instances: bool,
